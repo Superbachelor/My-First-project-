@@ -1,7 +1,5 @@
-
 """
 Created on Sat Feb 20 10:47:55 2021
-
 @author: LUJ9WX
 """
 
@@ -13,7 +11,6 @@ from pandas.testing import assert_frame_equal as pcheck
 
 def openfile():
     file=filedialog.askopenfilenames(title='打开文件',filetypes=[('text files', '.txt'),('all files', '.*')])
-    print(file)
     return file
 
 
@@ -45,7 +42,7 @@ def findresult(l, p, e, Q, bq,partnu,s3,i):
     inq = findmark(Q, tex.columns)
     baq = findmark(bq, tex.columns)
     ts = findmark(s3, tex.columns)
-
+    print (injname)
     # inq = findmark(Q, tex.columns[0])
     # baq = findmark(bq, tex.columns[0])
     # ts = findmark(s3, tex.columns[0])
@@ -57,19 +54,19 @@ def findresult(l, p, e, Q, bq,partnu,s3,i):
     ET = tex.loc[tex[x] ==' Measure'][et]
     ET.name = 'ET(us)'
     table_head = pd.concat([Pressure,ET], axis=1).reset_index(drop=True)
+    
     # table_head2 = pd.concat([table_head,table_head,table_head],key=['injQ','BFQ','3S'], axis=1,ignore_index=True)
     table_head2 = pd.concat([table_head, table_head, table_head], axis=0,keys=['injQ','BFQ','3S'], ignore_index=True)
-    print (table_head2)
-#    press=key[pr]
-#    print(press)
-#    press.name='Pressure'
-#    etime=key[et]
-#    etime.name='ET'
-#     press = tex.loc[[pr], [key]]
 
-     # table_head = pd.concat([press,etime],axis=1).reset_index(drop=True)
     
-    return x, pr, et, inq, baq, ts
+#    result = pd.concat([inq,baq,ts],axis=0,keys=['injQ','BFQ','3S'], ignore_index=True)
+    injQ = tex.loc[tex[x]==' Measure'][inq]
+    Backflow = tex.loc[tex[x]==' Measure'][baq]
+    sss = tex.loc[tex[x] ==' Measure'][ts]
+    
+    result =pd.concat([injQ,Backflow,sss],axis=0,keys=['injQ','BFQ','3S'], ignore_index=True)
+    
+    return table_head2, result, injname
     # return key
 
 if __name__ == '__main__':
@@ -83,8 +80,22 @@ if __name__ == '__main__':
     s3 = [' Q_emi2_MI_3s(MV)',' V_Inj1StdAbw(HDA_1)']
     partnu = [' Partnumber']
 
-    key,pr,et,inq, baq, ts = findresult(l, p, e, Q, bq, partnu, s3, file[0])
+    table, _ , _= findresult(l, p, e, Q, bq, partnu, s3, file[0])
+    
+    tab = table.copy(deep = False)
+    
+    for i in file:
+        check, result , injname= findresult(l, p, e, Q, bq, partnu, s3, i)
+        if check.equals(tab) == False:
+            print('测试点不相同')
+            break
 
+        table[injname]= result
+    asd=table.set_index('Pressure(bar)','ET(us)')
+    asd.to_excel('result.xlsx')
+    print(asd)
+    
+    
     # key = findresult(l, p, e, Q, bq, s3, file)
 
 
